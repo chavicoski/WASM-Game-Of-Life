@@ -24,6 +24,11 @@ macro_rules! log {
     }
 }
 
+// Coordinates of the points to draw a glider. The coordinates are taken using the
+// tip of the glider as the center (0, 0). The format of the coordinates list is:
+// [c0_row, c0_col, c1_row, c1_col, ..., cN_row, CN_col]
+const GLIDER: [i32; 10] = [0, -2, 0, -1, 0, 0, -1, 0, -2, -1];
+
 #[wasm_bindgen]
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -186,6 +191,17 @@ impl Universe {
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
         self.cells.toggle(idx);
+    }
+
+    pub fn create_glider(&mut self, row: u32, column: u32) {
+        // Get and insert each of the 5 cells to create the glider
+        for i in 0..5 {
+            // Apply the coordinates offsets of the current cell
+            let aux_row = (row as i32 + GLIDER[i * 2]).rem_euclid(self.height as i32) as u32;
+            let aux_col = (column as i32 + GLIDER[i * 2 + 1]).rem_euclid(self.width as i32) as u32;
+            let idx = self.get_index(aux_row, aux_col);
+            self.cells.insert(idx);
+        }
     }
 }
 

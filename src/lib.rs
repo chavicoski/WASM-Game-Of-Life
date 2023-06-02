@@ -52,19 +52,19 @@ impl Universe {
 
         // Create the universe data structure
         let size = (width * height) as usize;
-        let mut cells = FixedBitSet::with_capacity(size);
+        let cells = FixedBitSet::with_capacity(size);
 
-        // Set the universe state randomly
-        for i in 0..size {
-            cells.set(i, js_sys::Math::random() < 0.5);
-        }
-
-        Universe {
+        let mut universe = Universe {
             width,
             height,
             cells,
             n_ticks: 1,
-        }
+        };
+
+        // Randomly set the universe cells
+        universe.reset();
+
+        universe
     }
 
     pub fn width(&self) -> u32 {
@@ -84,14 +84,25 @@ impl Universe {
         match new_size.cmp(&curr_size) {
             Ordering::Greater => {
                 self.cells.grow(new_size);
-                self.cells.clear();
             }
             Ordering::Less => {
                 self.cells = FixedBitSet::with_capacity(new_size);
-                self.cells.clear();
             }
-            Ordering::Equal => self.cells.clear(),
+            Ordering::Equal => {}
         }
+        self.reset();
+    }
+
+    /// Randomly resert all the cells
+    pub fn reset(&mut self) {
+        for i in 0..self.size() {
+            self.cells.set(i, js_sys::Math::random() < 0.5);
+        }
+    }
+
+    /// Reset the universe with all the cells dead
+    pub fn clear(&mut self) {
+        self.cells.clear();
     }
 
     /// Set the number of world updates (ticks) per update

@@ -45,12 +45,26 @@ const pause = () => {
   animationId = null;
 };
 
-playPauseButton.addEventListener("click", (event) => {
+playPauseButton.addEventListener("click", () => {
   if (isPaused()) {
     play();
   } else {
     pause();
   }
+});
+
+const randomButton = document.getElementById("random-reset");
+randomButton.addEventListener("click", () => {
+  universe.reset();
+  drawGrid();
+  drawCells();
+});
+
+const clearButton = document.getElementById("clear-reset");
+clearButton.addEventListener("click", () => {
+  universe.clear();
+  drawGrid();
+  drawCells();
 });
 
 // Animation loop

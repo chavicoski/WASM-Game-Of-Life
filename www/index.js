@@ -18,7 +18,7 @@ const canvas = document.getElementById("game-of-life-canvas");
 canvas.height = (CELL_SIZE + 1) * height + 1;
 canvas.width = (CELL_SIZE + 1) * width + 1;
 
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext("2d");
 
 // Play/Pause game logic
 const playPauseButton = document.getElementById("play-pause");
@@ -39,7 +39,7 @@ const pause = () => {
   animationId = null;
 };
 
-playPauseButton.addEventListener("click", event => {
+playPauseButton.addEventListener("click", (event) => {
   if (isPaused()) {
     play();
   } else {
@@ -69,7 +69,7 @@ const drawGrid = () => {
 
   // Horizontal lines.
   for (let j = 0; j <= height; j++) {
-    ctx.moveTo(0,                           j * (CELL_SIZE + 1) + 1);
+    ctx.moveTo(0, j * (CELL_SIZE + 1) + 1);
     ctx.lineTo((CELL_SIZE + 1) * width + 1, j * (CELL_SIZE + 1) + 1);
   }
 
@@ -82,7 +82,7 @@ const getIndex = (row, column) => {
 
 const bitIsSet = (n, arr) => {
   const byte = Math.floor(n / 8);
-  const mask = 1 << (n % 8);
+  const mask = 1 << n % 8;
   return (arr[byte] & mask) === mask;
 };
 
@@ -90,7 +90,7 @@ const drawCells = () => {
   const cellsPtr = universe.cells();
 
   // This is updated!
-  const cells = new Uint8Array(memory.buffer, cellsPtr, width * height / 8);
+  const cells = new Uint8Array(memory.buffer, cellsPtr, (width * height) / 8);
 
   ctx.beginPath();
 
@@ -99,9 +99,7 @@ const drawCells = () => {
       const idx = getIndex(row, col);
 
       // This is updated!
-      ctx.fillStyle = bitIsSet(idx, cells)
-        ? ALIVE_COLOR
-        : DEAD_COLOR;
+      ctx.fillStyle = bitIsSet(idx, cells) ? ALIVE_COLOR : DEAD_COLOR;
 
       ctx.fillRect(
         col * (CELL_SIZE + 1) + 1,
@@ -116,7 +114,7 @@ const drawCells = () => {
 };
 
 // Interactivity to toggle cells
-canvas.addEventListener("click", event => {
+canvas.addEventListener("click", (event) => {
   const boundingRect = canvas.getBoundingClientRect();
 
   const scaleX = canvas.width / boundingRect.width;

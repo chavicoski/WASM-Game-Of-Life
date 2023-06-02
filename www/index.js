@@ -20,6 +20,12 @@ canvas.width = (CELL_SIZE + 1) * width + 1;
 
 const ctx = canvas.getContext("2d");
 
+// Range slider to change the tick rate of the world
+const ticks_range = document.getElementById("n_ticks");
+ticks_range.addEventListener("input", () => {
+  universe.set_ticks(ticks_range.value);
+});
+
 // Play/Pause game logic
 const playPauseButton = document.getElementById("play-pause");
 let animationId = null;
@@ -49,7 +55,7 @@ playPauseButton.addEventListener("click", (event) => {
 
 // Animation loop
 const renderLoop = () => {
-  universe.tick();
+  universe.update();
 
   drawGrid();
   drawCells();

@@ -37,6 +37,7 @@ pub struct Universe {
     width: u32,
     height: u32,
     cells: FixedBitSet,
+    n_ticks: u32,
 }
 
 #[wasm_bindgen]
@@ -62,6 +63,7 @@ impl Universe {
             width,
             height,
             cells,
+            n_ticks: 1,
         }
     }
 
@@ -90,6 +92,11 @@ impl Universe {
             }
             Ordering::Equal => self.cells.clear(),
         }
+    }
+
+    /// Set the number of world updates (ticks) per update
+    pub fn set_ticks(&mut self, ticks: u32) {
+        self.n_ticks = ticks;
     }
 
     /// Set the width of the universe.
@@ -133,6 +140,12 @@ impl Universe {
             }
         }
         count
+    }
+
+    pub fn update(&mut self) {
+        for _ in 0..self.n_ticks {
+            self.tick();
+        }
     }
 
     pub fn tick(&mut self) {

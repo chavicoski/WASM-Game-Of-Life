@@ -24,10 +24,17 @@ macro_rules! log {
     }
 }
 
-// Coordinates of the points to draw a glider. The coordinates are taken using the
-// tip of the glider as the center (0, 0). The format of the coordinates list is:
+// Coordinates of the points to draw a different figures. The coordinates are
+// taken using a representative pixel from the figure  as the center (0, 0).
+// The format of the coordinates list is:
 // [c0_row, c0_col, c1_row, c1_col, ..., cN_row, CN_col]
 const GLIDER: [i32; 10] = [0, -2, 0, -1, 0, 0, -1, 0, -2, -1];
+const PULSAR: [i32; 96] = [
+    6, -4, 6, -3, 6, -2, 6, 2, 6, 3, 6, 4, 4, -6, 4, -1, 4, 1, 4, 6, 3, -6, 3, -1, 3, 1, 3, 6, 2,
+    -6, 2, -1, 2, 1, 2, 6, 1, -4, 1, -3, 1, -2, 1, 2, 1, 3, 1, 4, -6, -4, -6, -3, -6, -2, -6, 2,
+    -6, 3, -6, 4, -4, -6, -4, -1, -4, 1, -4, 6, -3, -6, -3, -1, -3, 1, -3, 6, -2, -6, -2, -1, -2,
+    1, -2, 6, -1, -4, -1, -3, -1, -2, -1, 2, -1, 3, -1, 4,
+];
 
 #[wasm_bindgen]
 #[repr(u8)]
@@ -193,15 +200,35 @@ impl Universe {
         self.cells.toggle(idx);
     }
 
-    pub fn create_glider(&mut self, row: u32, column: u32) {
-        // Get and insert each of the 5 cells to create the glider
-        for i in 0..5 {
+    /// Creates a figure by setting alive the necessary cells to draw it.
+    ///
+    /// # Arguments
+    ///
+    /// * `coords` - A list with the coordinates of the cells to set alive. The coordinates
+    ///              are relative to the position (`row`, `column`) and there could be negative
+    ///              numbers. The format of the list is: [c0_row, c0_col, ..., cN_row, CN_col].
+    /// * `row` - Y coordinate of the possition to draw the figure.
+    /// * `column` - X coordinate of the possition to draw the figure.
+    fn create_figure(&mut self, coords: &[i32], row: u32, column: u32) {
+        // Get the number of cells to set alive to create the figure
+        let n_cells = coords.len() / 2;
+        for i in 0..n_cells {
             // Apply the coordinates offsets of the current cell
-            let aux_row = (row as i32 + GLIDER[i * 2]).rem_euclid(self.height as i32) as u32;
-            let aux_col = (column as i32 + GLIDER[i * 2 + 1]).rem_euclid(self.width as i32) as u32;
+            let aux_row = (row as i32 + coords[i * 2]).rem_euclid(self.height as i32) as u32;
+            let aux_col = (column as i32 + coords[i * 2 + 1]).rem_euclid(self.width as i32) as u32;
+            // Get the corresponding index in the data array
             let idx = self.get_index(aux_row, aux_col);
+            // Set the cell alive
             self.cells.insert(idx);
         }
+    }
+
+    pub fn create_glider(&mut self, row: u32, column: u32) {
+        self.create_figure(&GLIDER, row, column);
+    }
+
+    pub fn create_pulsar(&mut self, row: u32, column: u32) {
+        self.create_figure(&PULSAR, row, column);
     }
 }
 

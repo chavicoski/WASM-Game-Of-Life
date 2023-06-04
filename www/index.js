@@ -1,4 +1,4 @@
-import { Universe, Cell } from "wasm-game-of-life";
+import { Universe } from "wasm-game-of-life";
 import { memory } from "wasm-game-of-life/wasm_game_of_life_bg";
 
 const CELL_SIZE = 10; // px
@@ -115,7 +115,7 @@ const bitIsSet = (n, arr) => {
 const drawCells = () => {
   const cellsPtr = universe.cells();
 
-  // This is updated!
+  // Get the new universe state from the shared memory buffer with WASM
   const cells = new Uint8Array(memory.buffer, cellsPtr, (width * height) / 8);
 
   ctx.beginPath();
@@ -124,7 +124,6 @@ const drawCells = () => {
     for (let col = 0; col < width; col++) {
       const idx = getIndex(row, col);
 
-      // This is updated!
       ctx.fillStyle = bitIsSet(idx, cells) ? ALIVE_COLOR : DEAD_COLOR;
 
       ctx.fillRect(

@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 // To access the JS Math.random
 extern crate js_sys;
 
-// To use single-bit encoding for the universe Cells
+// To use single-bit encoding for the universe cells
 extern crate fixedbitset;
 use fixedbitset::FixedBitSet;
 
@@ -35,14 +35,6 @@ const PULSAR: [i32; 96] = [
     -6, 3, -6, 4, -4, -6, -4, -1, -4, 1, -4, 6, -3, -6, -3, -1, -3, 1, -3, 6, -2, -6, -2, -1, -2,
     1, -2, 6, -1, -4, -1, -3, -1, -2, -1, 2, -1, 3, -1, 4,
 ];
-
-#[wasm_bindgen]
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Cell {
-    Dead = 0,
-    Alive = 1,
-}
 
 #[wasm_bindgen]
 pub struct Universe {
@@ -166,6 +158,9 @@ impl Universe {
     }
 
     pub fn update(&mut self) {
+        // Keep track of the time to update
+        let _timer = utils::Timer::new("Universe::update");
+        // Update the universe state
         for _ in 0..self.n_ticks {
             self.tick();
         }

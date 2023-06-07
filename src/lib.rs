@@ -51,8 +51,8 @@ impl Universe {
         utils::set_panic_hook();
 
         // Set the universe dimensions
-        let width = 64;
-        let height = 64;
+        let width = 300;
+        let height = 150;
 
         // Create the universe data structure
         let size = (width * height) as usize;
@@ -187,8 +187,6 @@ impl Universe {
     }
 
     pub fn update(&mut self) {
-        // Keep track of the time to update
-        let _timer = utils::Timer::new("Universe::update");
         // Update the universe state
         for _ in 0..self.n_ticks {
             self.tick();

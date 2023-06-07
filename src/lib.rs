@@ -46,13 +46,9 @@ pub struct Universe {
 
 #[wasm_bindgen]
 impl Universe {
-    pub fn new() -> Universe {
+    pub fn new(width: u32, height: u32) -> Universe {
         // Enable better error messages in case of panic
         utils::set_panic_hook();
-
-        // Set the universe dimensions
-        let width = 300;
-        let height = 150;
 
         // Create the universe data structure
         let size = (width * height) as usize;
@@ -272,6 +268,6 @@ impl Universe {
 
 impl Default for Universe {
     fn default() -> Self {
-        Self::new()
+        Self::new(100, 100)
     }
 }

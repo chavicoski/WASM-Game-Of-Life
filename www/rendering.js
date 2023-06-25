@@ -113,9 +113,12 @@ const createGrid = (gl, gridLinesData) => {
 var grid_vao = null;
 var nGridLines = -1;
 export function initGrid(gl, universe) {
-    const gridLinesData = createGridLinesCoordinates(universe.width(), universe.height());
-    nGridLines = gridLinesData.length / 2;
-    grid_vao = createGrid(gl, gridLinesData);
+  const gridLinesData = createGridLinesCoordinates(
+    universe.width(),
+    universe.height()
+  );
+  nGridLines = gridLinesData.length / 2;
+  grid_vao = createGrid(gl, gridLinesData);
 }
 
 export const drawGrid = (gl) => {
@@ -139,11 +142,7 @@ export const drawCells = (gl, universe) => {
   const cellsPtr = universe.cells();
 
   // Get the new universe state from the shared memory buffer with WASM
-  const cells = new Uint8Array(
-    memory.buffer,
-    cellsPtr,
-    universe.size() / 8
-  );
+  const cells = new Uint8Array(memory.buffer, cellsPtr, universe.size() / 8);
 
   var aliveCellsCoords = [];
   const universe_width = universe.width();
@@ -155,29 +154,45 @@ export const drawCells = (gl, universe) => {
       if (bitIsSet(idx, cells)) {
         // Top left vertex
         let topLeftX = convertRange(col / universe_width, [0, 1], [-1, 1]);
-        let topLeftY = convertRange(row / universe_height, [0, 1], [-1, 1]);
+        let topLeftY = -convertRange(row / universe_height, [0, 1], [-1, 1]);
         // Top right vertex
-        let topRightX = convertRange(col + 1 / universe_width, [0, 1], [-1, 1]);
+        let topRightX = convertRange(
+          (col + 1) / universe_width,
+          [0, 1],
+          [-1, 1]
+        );
         let topRightY = topLeftY;
         // Bottom left vertex
         let bottomLeftX = topLeftX;
-        let bottomLeftY = convertRange(row - 1 / universe_height, [0, 1], [-1, 1]);
+        let bottomLeftY = -convertRange(
+          (row + 1) / universe_height,
+          [0, 1],
+          [-1, 1]
+        );
         // Bottom right vertex
         let bottomRightX = topRightX;
         let bottomRightY = bottomLeftY;
         // Push the coordintates to create the two triangles that form the square
         aliveCellsCoords.push(
-          topLeftX, topLeftY, topRightX, topRightY, bottomRightX, bottomRightY,
-          topLeftX, topLeftY, bottomRightX, bottomRightY, bottomLeftX, bottomLeftY,
-        )
+          topLeftX,
+          topLeftY,
+          topRightX,
+          topRightY,
+          bottomRightX,
+          bottomRightY,
+          topLeftX,
+          topLeftY,
+          bottomRightX,
+          bottomRightY,
+          bottomLeftX,
+          bottomLeftY
+        );
       }
     }
   }
-  console.log(aliveCellsCoords);
 
   const aliveCellsData = new Float32Array(aliveCellsCoords);
-  console.log(aliveCellsData);
-  var vertBuffer = gl.createBuffer(); // TODO Put variable as global?
+  var vertBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, aliveCellsData, gl.DYNAMIC_DRAW);
 
@@ -186,5 +201,3 @@ export const drawCells = (gl, universe) => {
 
   gl.drawArrays(gl.TRIANGLES, 0, aliveCellsData.length / 2);
 };
-
-

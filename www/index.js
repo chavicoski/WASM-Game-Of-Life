@@ -1,5 +1,13 @@
 import { Universe } from "wasm-game-of-life";
-import { createShader, createProgram, vertexShaderSrc, fragmentShaderSrc, drawGrid, drawCells, initGrid } from "./rendering";
+import {
+  createShader,
+  createProgram,
+  vertexShaderSrc,
+  fragmentShaderSrc,
+  drawGrid,
+  drawCells,
+  initGrid,
+} from "./rendering";
 
 const CELL_SIZE = 10; // px
 const GRID_COLOR = "#CCCCCC";

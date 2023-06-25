@@ -1,12 +1,20 @@
 import { Universe } from "wasm-game-of-life";
-import { memory } from "wasm-game-of-life/wasm_game_of_life_bg";
+import {
+  createShader,
+  createProgram,
+  vertexShaderSrc,
+  fragmentShaderSrc,
+  drawGrid,
+  drawCells,
+  initGrid,
+} from "./rendering";
 
-const CELL_SIZE = 3; // px
+const CELL_SIZE = 10; // px
 const GRID_COLOR = "#CCCCCC";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#000000";
-const UNIVERSE_WIDTH = 300;
-const UNIVERSE_HEIGHT = 150;
+const UNIVERSE_WIDTH = 100;
+const UNIVERSE_HEIGHT = 50;
 
 // Construct the universe, and get its width and height.
 const universe = Universe.new(UNIVERSE_WIDTH, UNIVERSE_HEIGHT);
@@ -18,7 +26,18 @@ const canvas = document.getElementById("game-of-life-canvas");
 canvas.height = (CELL_SIZE + 1) * UNIVERSE_HEIGHT + 1;
 canvas.width = (CELL_SIZE + 1) * UNIVERSE_WIDTH + 1;
 
-const ctx = canvas.getContext("2d");
+// Get the WebGL 2.0 context to draw the universe
+const gl = canvas.getContext("webgl2");
+
+const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSrc);
+const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSrc);
+const program = createProgram(gl, vertexShader, fragmentShader);
+
+// Enable the program for rendering
+gl.useProgram(program);
+
+// Initialize the grid for rendering the universe
+initGrid(gl, universe);
 
 // Range slider to change the tick rate of the world
 const ticks_range = document.getElementById("n_ticks");
@@ -56,15 +75,15 @@ playPauseButton.addEventListener("click", () => {
 const randomButton = document.getElementById("random-reset");
 randomButton.addEventListener("click", () => {
   universe.reset();
-  drawGrid();
-  drawCells();
+  drawGrid(gl);
+  drawCells(gl, universe);
 });
 
 const clearButton = document.getElementById("clear-reset");
 clearButton.addEventListener("click", () => {
   universe.clear();
-  drawGrid();
-  drawCells();
+  drawGrid(gl);
+  drawCells(gl, universe);
 });
 
 // Animation loop
@@ -76,70 +95,11 @@ const renderLoop = () => {
   universe.update();
 
   // Draw the universe new state
-  drawGrid();
-  drawCells();
+  drawGrid(gl);
+  drawCells(gl, universe);
 
   // Queue the next frame calculation
   animationId = requestAnimationFrame(renderLoop);
-};
-
-const drawGrid = () => {
-  ctx.beginPath();
-  ctx.strokeStyle = GRID_COLOR;
-
-  // Vertical lines.
-  for (let i = 0; i <= UNIVERSE_WIDTH; i++) {
-    ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
-    ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * UNIVERSE_HEIGHT + 1);
-  }
-
-  // Horizontal lines.
-  for (let j = 0; j <= UNIVERSE_HEIGHT; j++) {
-    ctx.moveTo(0, j * (CELL_SIZE + 1) + 1);
-    ctx.lineTo((CELL_SIZE + 1) * UNIVERSE_WIDTH + 1, j * (CELL_SIZE + 1) + 1);
-  }
-
-  ctx.stroke();
-};
-
-const getIndex = (row, column) => {
-  return row * UNIVERSE_WIDTH + column;
-};
-
-const bitIsSet = (n, arr) => {
-  const byte = Math.floor(n / 8);
-  const mask = 1 << n % 8;
-  return (arr[byte] & mask) === mask;
-};
-
-const drawCells = () => {
-  const cellsPtr = universe.cells();
-
-  // Get the new universe state from the shared memory buffer with WASM
-  const cells = new Uint8Array(
-    memory.buffer,
-    cellsPtr,
-    (UNIVERSE_WIDTH * UNIVERSE_HEIGHT) / 8
-  );
-
-  ctx.beginPath();
-
-  for (let row = 0; row < UNIVERSE_HEIGHT; row++) {
-    for (let col = 0; col < UNIVERSE_WIDTH; col++) {
-      const idx = getIndex(row, col);
-
-      ctx.fillStyle = bitIsSet(idx, cells) ? ALIVE_COLOR : DEAD_COLOR;
-
-      ctx.fillRect(
-        col * (CELL_SIZE + 1) + 1,
-        row * (CELL_SIZE + 1) + 1,
-        CELL_SIZE,
-        CELL_SIZE
-      );
-    }
-  }
-
-  ctx.stroke();
 };
 
 // Interactivity to toggle cells
@@ -169,8 +129,8 @@ canvas.addEventListener("click", (event) => {
     universe.toggle_cell(row, col);
   }
 
-  drawGrid();
-  drawCells();
+  drawGrid(gl);
+  drawCells(gl, universe);
 });
 
 const fps = new (class {

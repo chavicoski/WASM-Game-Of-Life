@@ -40,9 +40,9 @@ gl.useProgram(program);
 initGrid(gl, universe);
 
 // Range slider to change the tick rate of the world
-const ticks_range = document.getElementById("n_ticks");
-ticks_range.addEventListener("input", () => {
-    universe.set_ticks(ticks_range.value);
+const ticksRange = document.getElementById("n_ticks");
+ticksRange.addEventListener("input", () => {
+    universe.set_ticks(ticksRange.value);
 });
 
 // Play/Pause game logic

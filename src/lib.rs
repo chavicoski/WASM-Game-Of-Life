@@ -1,5 +1,6 @@
 mod utils;
 
+use dubble::DoubleBuffered;
 use std::cmp::Ordering;
 use wasm_bindgen::prelude::*;
 
@@ -40,7 +41,7 @@ const PULSAR: [i32; 96] = [
 pub struct Universe {
     width: u32,
     height: u32,
-    cells: FixedBitSet,
+    cells: DoubleBuffered<FixedBitSet>,
     n_ticks: u32,
 }
 
@@ -52,7 +53,7 @@ impl Universe {
 
         // Create the universe data structure
         let size = (width * height) as usize;
-        let cells = FixedBitSet::with_capacity(size);
+        let cells = DoubleBuffered::new(FixedBitSet::with_capacity(size));
 
         let mut universe = Universe {
             width,
@@ -86,7 +87,7 @@ impl Universe {
                 self.cells.grow(new_size);
             }
             Ordering::Less => {
-                self.cells = FixedBitSet::with_capacity(new_size);
+                self.cells.upsert(FixedBitSet::with_capacity(new_size));
             }
             Ordering::Equal => {}
         }
@@ -98,11 +99,13 @@ impl Universe {
         for i in 0..self.size() {
             self.cells.set(i, js_sys::Math::random() < 0.5);
         }
+        self.cells.update();
     }
 
     /// Reset the universe with all the cells dead
     pub fn clear(&mut self) {
         self.cells.clear();
+        self.cells.update();
     }
 
     /// Set the number of world updates (ticks) per update
@@ -190,14 +193,14 @@ impl Universe {
     }
 
     pub fn tick(&mut self) {
-        let mut next = self.cells.clone();
         for row in 0..self.height {
             for col in 0..self.width {
                 let idx = self.get_index(row, col);
-                let cell = self.cells[idx];
+                let cell = self.cells[idx]; // From read buffer
                 let live_neighbors = self.live_neighbor_count(row, col);
 
-                next.set(
+                // Update the write buffer
+                self.cells.set(
                     idx,
                     match (cell, live_neighbors) {
                         (true, x) if x < 2 => false,
@@ -210,12 +213,13 @@ impl Universe {
             }
         }
 
-        self.cells = next;
+        self.cells.update();
     }
 
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
         self.cells.toggle(idx);
+        self.cells.update();
     }
 
     /// Creates a figure by setting alive the necessary cells to draw it.
@@ -239,6 +243,7 @@ impl Universe {
             // Set the cell alive
             self.cells.insert(idx);
         }
+        self.cells.update();
     }
 
     pub fn create_glider(&mut self, row: u32, column: u32) {
@@ -263,6 +268,7 @@ impl Universe {
             let idx = self.get_index(row, col);
             self.cells.set(idx, true);
         }
+        self.cells.update();
     }
 }
 

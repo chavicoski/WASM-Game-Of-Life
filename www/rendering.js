@@ -4,12 +4,15 @@ import { memory } from "wasm-game-of-life/wasm_game_of_life_bg";
 const aPositionLoc = 0;
 const aPointSizeLoc = 1;
 const aColorLoc = 2;
+const aOffsetLoc = 3;
 
 export const vertexShaderSrc = `#version 300 es
+#pragma vscode_glsllint_stage: vert
 
 layout(location=0) in vec4 aPosition;
 layout(location=1) in float aPointSize;
 layout(location=2) in vec4 aColor;
+layout(location=3) in vec3 aOffset;
 
 out vec4 vColor;
 
@@ -17,7 +20,7 @@ void main()
 {
 	vColor = aColor;
 	gl_PointSize = aPointSize;
-	gl_Position = aPosition;
+    gl_Position = vec4(aPosition.xyz + aOffset, 1.0);
 }`;
 
 export const fragmentShaderSrc = `#version 300 es
@@ -64,67 +67,96 @@ function convertRange(value, r1, r2) {
     return ((value - r1[0]) * (r2[1] - r2[0])) / (r1[1] - r1[0]) + r2[0];
 }
 
-const createGridLinesCoordinates = (width, height) => {
-    var nVerticalLinesCoords = (width + 1) * 4;
-    var nHorizontalLinesCoords = (height + 1) * 4;
-    var totalLinesCoords = nVerticalLinesCoords + nHorizontalLinesCoords;
-    var linesCoords = new Float32Array(totalLinesCoords);
+var verticalGridLinesVAO = null;
+var horizontalGridLinesVAO = null;
+var nHorizontalLines = -1;
+var nVerticalLines = -1;
+export function initGrid(gl, universe) {
+    // Get universe dimensions to compute the grid lines positioning
+    const width = universe.width();
+    const height = universe.height();
+    nVerticalLines = width + 1;
+    nHorizontalLines = height + 1;
+
+    // Prepare the data to draw the vertical lines
+    const verticalLineData = new Float32Array([-1, 1, -1, -1]);
+    const verticalLinesOffsetData = new Float32Array(nVerticalLines * 2);
+    let verticalLinesSpace = 2 / width;
+    let curr_offset = 0.0;
     for (let i = 0; i <= width; i++) {
-        let x_pos = convertRange(i / width, [0, 1], [-1, 1]);
-        let line_offset = i * 4;
-        linesCoords[line_offset] = x_pos;
-        linesCoords[line_offset + 1] = 1;
-        linesCoords[line_offset + 2] = x_pos;
-        linesCoords[line_offset + 3] = -1;
+        verticalLinesOffsetData[2 * i] = curr_offset;
+        verticalLinesOffsetData[2 * i + 1] = 0;
+        curr_offset += verticalLinesSpace;
     }
 
-    for (let j = 0; j <= height; j++) {
-        let y_pos = convertRange(j / height, [0, 1], [-1, 1]);
-        let line_offset = nVerticalLinesCoords + j * 4;
-        linesCoords[line_offset] = -1;
-        linesCoords[line_offset + 1] = y_pos;
-        linesCoords[line_offset + 2] = 1;
-        linesCoords[line_offset + 3] = y_pos;
+    // Prepare the data to draw the horizontal lines
+    const horizontalLineData = new Float32Array([-1, 1, 1, 1]);
+    const horizontalLinesOffsetData = new Float32Array(nHorizontalLines * 2);
+    let horizontalLinesSpace = 2 / height;
+    curr_offset = 0.0;
+    for (let i = 0; i <= height; i++) {
+        horizontalLinesOffsetData[2 * i] = 0;
+        horizontalLinesOffsetData[2 * i + 1] = curr_offset;
+        curr_offset -= horizontalLinesSpace;
     }
-    return linesCoords;
-};
 
-const createGrid = (gl, gridLinesData) => {
-    // Create a Vertex Array Object to store the grid
-    const vao = gl.createVertexArray();
-    gl.bindVertexArray(vao);
+    // Create a Vertex Array Object to store the vertical lines
+    verticalGridLinesVAO = gl.createVertexArray();
+    gl.bindVertexArray(verticalGridLinesVAO);
 
+    // Set common attributes
     gl.vertexAttrib1f(aPointSizeLoc, 1);
     gl.vertexAttrib4f(aColorLoc, 0, 0, 0, 1);
 
-    var vertBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, gridLinesData, gl.STATIC_DRAW);
-
-    gl.vertexAttribPointer(aPositionLoc, 2, gl.FLOAT, false, 8, 0);
-
+    // Create the buffer to store the vertical line model
+    var verticalLineBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticalLineBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, verticalLineData, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(aPositionLoc, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(aPositionLoc);
+    // Create the buffer to store the vertical lines offsets
+    var verticalOffsetBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticalOffsetBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, verticalLinesOffsetData, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(aOffsetLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aOffsetLoc);
+    gl.vertexAttribDivisor(aOffsetLoc, 1);
 
     gl.bindVertexArray(null);
 
-    return vao;
-};
+    // Create a Vertex Array Object to store the horizontal lines
+    horizontalGridLinesVAO = gl.createVertexArray();
+    gl.bindVertexArray(horizontalGridLinesVAO);
 
-var grid_vao = null;
-var nGridLines = -1;
-export function initGrid(gl, universe) {
-    const gridLinesData = createGridLinesCoordinates(
-        universe.width(),
-        universe.height()
-    );
-    nGridLines = gridLinesData.length / 2;
-    grid_vao = createGrid(gl, gridLinesData);
+    // Set common attributes
+    gl.vertexAttrib1f(aPointSizeLoc, 1);
+    gl.vertexAttrib4f(aColorLoc, 0, 0, 0, 1);
+
+    // Create the buffer to store the horizontal line model
+    var horizontalLineBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, horizontalLineBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, horizontalLineData, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(aPositionLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aPositionLoc);
+    // Create the buffer to store the horizontal lines offsets
+    var horizontalOffsetBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, horizontalOffsetBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, horizontalLinesOffsetData, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(aOffsetLoc, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aOffsetLoc);
+    gl.vertexAttribDivisor(aOffsetLoc, 1);
+
+    gl.bindVertexArray(null);
 }
 
 export const drawGrid = (gl) => {
-    // Draw the static grid using the Vertex Array Object
-    gl.bindVertexArray(grid_vao);
-    gl.drawArrays(gl.LINES, 0, nGridLines);
+    // Draw grid vertical lines
+    gl.bindVertexArray(verticalGridLinesVAO);
+    gl.drawArraysInstanced(gl.LINES, 0, 2, nVerticalLines);
+    gl.bindVertexArray(null);
+    // Draw grid horizontal lines
+    gl.bindVertexArray(horizontalGridLinesVAO);
+    gl.drawArraysInstanced(gl.LINES, 0, 2, nHorizontalLines);
     gl.bindVertexArray(null);
 };
 
@@ -180,7 +212,7 @@ export const drawCells = (gl, universe) => {
                 // Bottom right vertex
                 let bottomRightX = topRightX;
                 let bottomRightY = bottomLeftY;
-                // Push the coordintates to create the two triangles that form the square
+                // Push the coordinates to create the two triangles that form the square
                 aliveCellsCoords.push(
                     topLeftX,
                     topLeftY,

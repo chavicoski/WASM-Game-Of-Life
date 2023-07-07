@@ -6,6 +6,7 @@ const aPointSizeLoc = 1;
 const aColorLoc = 2;
 const aOffsetLoc = 3;
 
+// Define the shaders code
 export const vertexShaderSrc = `#version 300 es
 #pragma vscode_glsllint_stage: vert
 
@@ -22,7 +23,6 @@ void main()
 	gl_PointSize = aPointSize;
     gl_Position = vec4(aPosition.xyz + aOffset, 1.0);
 }`;
-
 export const fragmentShaderSrc = `#version 300 es
 
 precision mediump float;
@@ -36,6 +36,7 @@ void main()
 	fragColor = vColor;
 }`;
 
+// Utility function to prepare a shader
 export function createShader(gl, type, source) {
     var shader = gl.createShader(type);
     gl.shaderSource(shader, source);
@@ -49,6 +50,7 @@ export function createShader(gl, type, source) {
     gl.deleteShader(shader);
 }
 
+// Utility function to prepare a WebGL program
 export function createProgram(gl, vertexShader, fragmentShader) {
     var program = gl.createProgram();
     gl.attachShader(program, vertexShader);
@@ -63,14 +65,17 @@ export function createProgram(gl, vertexShader, fragmentShader) {
     gl.deleteProgram(program);
 }
 
+// Convert a value in range r1 to the range r2
 function convertRange(value, r1, r2) {
     return ((value - r1[0]) * (r2[1] - r2[0])) / (r1[1] - r1[0]) + r2[0];
 }
 
+// Auxiliary variables to store constant objects
 var verticalGridLinesVAO = null;
 var horizontalGridLinesVAO = null;
 var nHorizontalLines = -1;
 var nVerticalLines = -1;
+// Computes and prepares the grid of the universe. This function only has to be called once
 export function initGrid(gl, universe) {
     // Get universe dimensions to compute the grid lines positioning
     const width = universe.width();
@@ -149,6 +154,7 @@ export function initGrid(gl, universe) {
     gl.bindVertexArray(null);
 }
 
+// Render the already computed grid using WebGL
 export const drawGrid = (gl) => {
     // Draw grid vertical lines
     gl.bindVertexArray(verticalGridLinesVAO);
@@ -160,29 +166,36 @@ export const drawGrid = (gl) => {
     gl.bindVertexArray(null);
 };
 
+// Convert from universe row-col coordinates to an index in the universe data array
 const getIndex = (universe_width, row, column) => {
     return row * universe_width + column;
 };
 
+// Efficient check for alive cells
 const bitIsSet = (n, arr) => {
     const byte = Math.floor(n / 8);
     const mask = 1 << n % 8;
     return (arr[byte] & mask) === mask;
 };
 
+// Get the current universe cells state and render them
 export const drawCells = (gl, universe) => {
-    const cellsPtr = universe.cells();
+    // Get the new universe state
+    const cells = new Uint8Array(
+        memory.buffer,
+        universe.cells(),
+        universe.size() / 8
+    );
 
-    // Get the new universe state from the shared memory buffer with WASM
-    const cells = new Uint8Array(memory.buffer, cellsPtr, universe.size() / 8);
-
+    // Look for all the alive cells and store the pixels coordinates of the triangles
+    // to draw the cell square
     var aliveCellsCoords = [];
     const universe_width = universe.width();
     const universe_height = universe.height();
-
     for (let row = 0; row < universe_height; row++) {
         for (let col = 0; col < universe_width; col++) {
             const idx = getIndex(universe_width, row, col);
+            // If is alive
             if (bitIsSet(idx, cells)) {
                 // Top left vertex
                 let topLeftX = convertRange(
@@ -231,13 +244,14 @@ export const drawCells = (gl, universe) => {
         }
     }
 
+    // Prepare the WebGL buffer with the triangles data
     const aliveCellsData = new Float32Array(aliveCellsCoords);
     var vertBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, aliveCellsData, gl.DYNAMIC_DRAW);
-
+    // Prepare the attribute to position the triangles vertices
     gl.vertexAttribPointer(aPositionLoc, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(aPositionLoc);
-
+    // Render the alive cells as triangles
     gl.drawArrays(gl.TRIANGLES, 0, aliveCellsData.length / 2);
 };

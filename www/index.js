@@ -9,14 +9,11 @@ import {
     initGrid,
 } from "./rendering";
 
-const CELL_SIZE = 10; // px
-const GRID_COLOR = "#CCCCCC";
-const DEAD_COLOR = "#FFFFFF";
-const ALIVE_COLOR = "#000000";
+const CELL_SIZE = 10; // pixels
 const UNIVERSE_WIDTH = 100;
 const UNIVERSE_HEIGHT = 50;
 
-// Construct the universe, and get its width and height.
+// Initialize the universe
 const universe = Universe.new(UNIVERSE_WIDTH, UNIVERSE_HEIGHT);
 
 // Get the canvas HTML element to display the universe
@@ -29,17 +26,18 @@ canvas.width = (CELL_SIZE + 1) * UNIVERSE_WIDTH + 1;
 // Get the WebGL 2.0 context to draw the universe
 const gl = canvas.getContext("webgl2");
 
+// Compile shaders and create the WebGL program for rendering
 const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSrc);
 const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSrc);
 const program = createProgram(gl, vertexShader, fragmentShader);
 
-// Enable the program for rendering
+// Enable the program
 gl.useProgram(program);
 
-// Initialize the grid for rendering the universe
+// Initialize the grid to render the universe
 initGrid(gl, universe);
 
-// Range slider to change the tick rate of the world
+// Handle the range slider to change the tick rate of the world
 const ticksRange = document.getElementById("n_ticks");
 ticksRange.addEventListener("input", () => {
     universe.set_ticks(ticksRange.value);
@@ -72,6 +70,7 @@ playPauseButton.addEventListener("click", () => {
     }
 });
 
+// Handle the universe random reset button
 const randomButton = document.getElementById("random-reset");
 randomButton.addEventListener("click", () => {
     universe.reset();
@@ -79,6 +78,7 @@ randomButton.addEventListener("click", () => {
     drawCells(gl, universe);
 });
 
+// Handle the universe full clear button
 const clearButton = document.getElementById("clear-reset");
 clearButton.addEventListener("click", () => {
     universe.clear();
@@ -104,6 +104,7 @@ const renderLoop = () => {
 
 // Interactivity to toggle cells
 canvas.addEventListener("click", (event) => {
+    // Get the target row and col of the clicked cell
     const boundingRect = canvas.getBoundingClientRect();
 
     const scaleX = canvas.width / boundingRect.width;
@@ -121,6 +122,7 @@ canvas.addEventListener("click", (event) => {
         UNIVERSE_WIDTH - 1
     );
 
+    // Handle the user input keys
     if (event.ctrlKey || event.metaKey) {
         universe.create_glider(row, col);
     } else if (event.shiftKey) {
@@ -129,15 +131,18 @@ canvas.addEventListener("click", (event) => {
         universe.toggle_cell(row, col);
     }
 
+    // Update the universe render
     drawGrid(gl);
     drawCells(gl, universe);
 });
 
+// Auxiliary class to handle th fps stats
 const fps = new (class {
     constructor() {
         this.fps = document.getElementById("fps");
         this.frames = [];
         this.lastFrameTimeStamp = performance.now();
+        this.max_frames_history = 100;
     }
 
     render() {
@@ -148,13 +153,13 @@ const fps = new (class {
         this.lastFrameTimeStamp = now;
         const fps = (1 / delta) * 1000;
 
-        // Save only the latest 100 timings
+        // Save only the latest this.max_frames_history timings
         this.frames.push(fps);
-        if (this.frames.length > 100) {
+        if (this.frames.length > this.max_frames_history) {
             this.frames.shift();
         }
 
-        // Find the max, min, and mean of our 100 latest timings
+        // Find the max, min, and mean of our latest timings
         let min = Infinity;
         let max = -Infinity;
         let sum = 0;
@@ -166,13 +171,11 @@ const fps = new (class {
         let mean = sum / this.frames.length;
 
         // Render the statistics
-        this.fps.textContent = `
-Frames per Second:
-         latest = ${Math.round(fps)}
-avg of last 100 = ${Math.round(mean)}
-min of last 100 = ${Math.round(min)}
-max of last 100 = ${Math.round(max)}
-`.trim();
+        this.fps.textContent = `FPS: ${Math.round(fps)} \
+(last ${this.max_frames_history}: \
+avg = ${Math.round(mean)}, \
+min = ${Math.round(min)}, \
+max = ${Math.round(max)})`.trim();
     }
 })();
 

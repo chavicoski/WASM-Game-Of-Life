@@ -37,6 +37,8 @@ const PULSAR: [i32; 96] = [
     1, -2, 6, -1, -4, -1, -3, -1, -2, -1, 2, -1, 3, -1, 4,
 ];
 
+/// Main data structure to store the universe state.
+/// Uses a double buffered strategy to update the cells states.
 #[wasm_bindgen]
 pub struct Universe {
     width: u32,
@@ -47,6 +49,9 @@ pub struct Universe {
 
 #[wasm_bindgen]
 impl Universe {
+    /// Initializes the universe with a given size.
+    ///
+    /// The state of the cells will be set randomly to alive or dead.
     pub fn new(width: u32, height: u32) -> Universe {
         // Enable better error messages in case of panic
         utils::set_panic_hook();
@@ -76,10 +81,12 @@ impl Universe {
         self.height
     }
 
+    /// Get the size of the universe in number of cells.
     pub fn size(&self) -> usize {
         (self.width * self.height) as usize
     }
 
+    /// Set a new size for the universe and set a new random state.
     fn reset_with_size(&mut self, new_size: usize) {
         let curr_size = self.size();
         match new_size.cmp(&curr_size) {
@@ -94,7 +101,7 @@ impl Universe {
         self.reset();
     }
 
-    /// Randomly resert all the cells
+    /// Randomly reset all the cells.
     pub fn reset(&mut self) {
         for i in 0..self.size() {
             self.cells.set(i, js_sys::Math::random() < 0.5);
@@ -102,13 +109,13 @@ impl Universe {
         self.cells.update();
     }
 
-    /// Reset the universe with all the cells dead
+    /// Reset the universe with all the cells dead.
     pub fn clear(&mut self) {
         self.cells.clear();
         self.cells.update();
     }
 
-    /// Set the number of world updates (ticks) per update
+    /// Set the number of world updates (ticks) per update.
     pub fn set_ticks(&mut self, ticks: u32) {
         self.n_ticks = ticks;
     }
@@ -131,14 +138,17 @@ impl Universe {
         self.reset_with_size(new_size);
     }
 
+    /// Get a pointer to the cells state data.
     pub fn cells(&self) -> *const u32 {
         self.cells.as_slice().as_ptr()
     }
 
+    /// Get the index of a cell in the data array.
     fn get_index(&self, row: u32, column: u32) -> usize {
         (row * self.width + column) as usize
     }
 
+    /// Returns the number of alive neighbors for a given cell.
     fn live_neighbor_count(&self, row: u32, column: u32) -> u8 {
         let mut count = 0;
 
@@ -185,6 +195,9 @@ impl Universe {
         count
     }
 
+    /// Compute the next universe state.
+    ///
+    /// The number of updates will be set by `self.n_ticks`.
     pub fn update(&mut self) {
         // Update the universe state
         for _ in 0..self.n_ticks {
@@ -192,6 +205,7 @@ impl Universe {
         }
     }
 
+    /// Update the universe state by one tick.
     pub fn tick(&mut self) {
         for row in 0..self.height {
             for col in 0..self.width {
@@ -216,13 +230,15 @@ impl Universe {
         self.cells.update();
     }
 
+    /// Toggle the state of a given cell.
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
         self.cells.toggle(idx);
         self.cells.update();
     }
 
-    /// Creates a figure by setting alive the necessary cells to draw it.
+    /// Generic function to draw a figure given the figure definition (`coords`) and the
+    /// position to draw it.
     ///
     /// # Arguments
     ///
@@ -246,10 +262,12 @@ impl Universe {
         self.cells.update();
     }
 
+    /// Draws a glider in the position provided.
     pub fn create_glider(&mut self, row: u32, column: u32) {
         self.create_figure(&GLIDER, row, column);
     }
 
+    /// Draws a pulsar in the position provided.
     pub fn create_pulsar(&mut self, row: u32, column: u32) {
         self.create_figure(&PULSAR, row, column);
     }
@@ -273,6 +291,7 @@ impl Universe {
 }
 
 impl Default for Universe {
+    /// Default universe constructor with a size of 100x100.
     fn default() -> Self {
         Self::new(100, 100)
     }

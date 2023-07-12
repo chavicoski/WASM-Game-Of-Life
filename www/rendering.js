@@ -85,6 +85,7 @@ export function initGrid(gl, universe) {
 
     // Prepare the data to draw the vertical lines
     const verticalLineData = new Float32Array([-1, 1, -1, -1]);
+    // Store the offset space between vertical lines for the instanced drawing
     const verticalLinesOffsetData = new Float32Array(nVerticalLines * 2);
     let verticalLinesSpace = 2 / width;
     let curr_offset = 0.0;
@@ -96,6 +97,7 @@ export function initGrid(gl, universe) {
 
     // Prepare the data to draw the horizontal lines
     const horizontalLineData = new Float32Array([-1, 1, 1, 1]);
+    // Store the offset space between horizontal lines for the instanced drawing
     const horizontalLinesOffsetData = new Float32Array(nHorizontalLines * 2);
     let horizontalLinesSpace = 2 / height;
     curr_offset = 0.0;

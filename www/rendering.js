@@ -1,4 +1,4 @@
-import { memory } from "wasm-game-of-life/wasm_game_of_life_bg";
+import { memory } from "wasm-game-of-life-webgl-rendering/wasm_game_of_life_webgl_rendering_bg";
 
 // To access directly to the shader attributes
 const aPositionLoc = 0;

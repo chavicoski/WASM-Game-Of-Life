@@ -1,4 +1,4 @@
-import { Universe } from "wasm-game-of-life";
+import { Universe } from "wasm-game-of-life-webgl-rendering";
 import {
     createShader,
     createProgram,

@@ -1,6 +1,6 @@
 [package]
-name = "wasm-game-of-life"
-version = "0.1.0"
+name = "wasm-game-of-life-webgl-rendering"
+version = "0.1.1"
 authors = ["chavicoski <alvaro.lopez.chilet@gmail.com>"]
 edition = "2018"
 

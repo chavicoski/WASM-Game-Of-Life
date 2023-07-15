@@ -1,86 +1,48 @@
-<div align="center">
+# WASM Game of Life
 
-  <h1><code>wasm-pack-template</code></h1>
+![game-of-life](etc/game-of-life-recording.gif)
 
-  <strong>A template for kick starting a Rust and WebAssembly project using <a href="https://github.com/rustwasm/wasm-pack">wasm-pack</a>.</strong>
+## Intro
 
-  <p>
-    <a href="https://travis-ci.org/rustwasm/wasm-pack-template"><img src="https://img.shields.io/travis/rustwasm/wasm-pack-template.svg?style=flat-square" alt="Build Status" /></a>
-  </p>
+This repo contains an implementation of the `Game of Life` using `WASM` with `Rust`. Also, as this implementation focuses on performance, `WebGL` is also used to render the game.
 
-  <h3>
-    <a href="https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html">Tutorial</a>
-    <span> | </span>
-    <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
-  </h3>
+## Contents
 
-  <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
-</div>
+You can find the Rust library crate implementation in [src](src) and an example website using the package in [www](www).
 
-## About
+## How to Run
 
-[**📚 Read this template tutorial! 📚**][template-docs]
+### Build the WASM package from source
 
-This template is designed for compiling Rust libraries into WebAssembly and
-publishing the resulting package to NPM.
+First you will need to have [Rust](https://www.rust-lang.org/tools/install) and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/) to compile the rust library and build the WASM package.
 
-Be sure to check out [other `wasm-pack` tutorials online][tutorials] for other
-templates and usages of `wasm-pack`.
+To build the package run:
 
-[tutorials]: https://rustwasm.github.io/docs/wasm-pack/tutorials/index.html
-[template-docs]: https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/index.html
-
-## 🚴 Usage
-
-### 🐑 Use `cargo generate` to Clone this Template
-
-[Learn more about `cargo generate` here.](https://github.com/ashleygwilliams/cargo-generate)
-
-```
-cargo generate --git https://github.com/rustwasm/wasm-pack-template.git --name my-project
-cd my-project
-```
-
-### 🛠️ Build with `wasm-pack build`
-
-```
+```bash
 wasm-pack build
 ```
 
-### 🔬 Test in Headless Browsers with `wasm-pack test`
+### Run the example web page
 
+Once you built the WASM package from source you can go into the [www](www) directory and run the web server.
+
+First make sure you have [npm](https://docs.npmjs.com/getting-started) installed. Then run:
+
+```bash
+# Enter the web page directory
+cd www
+# Install the dependencies
+npm install
+# Run the web server
+npm run start
 ```
-wasm-pack test --headless --firefox
+
+## `npm` package
+
+If you want to add the package to your project you can use the [published npm package](https://www.npmjs.com/package/wasm-game-of-life-webgl-rendering).
+
+It can be installed with:
+
+```bash
+npm i wasm-game-of-life-webgl-rendering
 ```
-
-### 🎁 Publish to NPM with `wasm-pack publish`
-
-```
-wasm-pack publish
-```
-
-## 🔋 Batteries Included
-
-* [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) for communicating
-  between WebAssembly and JavaScript.
-* [`console_error_panic_hook`](https://github.com/rustwasm/console_error_panic_hook)
-  for logging panic messages to the developer console.
-* [`wee_alloc`](https://github.com/rustwasm/wee_alloc), an allocator optimized
-  for small code size.
-* `LICENSE-APACHE` and `LICENSE-MIT`: most Rust projects are licensed this way, so these are included for you
-
-## License
-
-Licensed under either of
-
-* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-* MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-
-at your option.
-
-### Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally
-submitted for inclusion in the work by you, as defined in the Apache-2.0
-license, shall be dual licensed as above, without any additional terms or
-conditions.

@@ -8,3 +8,6 @@ wasm-pack.log
 # For www directory
 node_modules
 dist
+
+# Misc
+.DS_store

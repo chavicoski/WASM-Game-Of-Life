@@ -1,8 +1,10 @@
 [package]
 name = "wasm-game-of-life-webgl-rendering"
-version = "0.1.1"
+description = "WASM implementation of the Game of Life with focus on performance."
+version = "0.1.2"
 authors = ["chavicoski <alvaro.lopez.chilet@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/chavicoski/WASM-Game-Of-Life"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

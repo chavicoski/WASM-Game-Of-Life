@@ -19,26 +19,62 @@
         #fps {
             white-space: pre;
             font-family: monospace;
+            margin: 5px;
+        }
+        #game-of-life-canvas {
+            margin: 5px;
+        }
+        .control_button {
+            background-color: #728685;
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 6px;
+            margin: 5px;
+            font-family: monospace;
+        }
+        #ticks-selector {
+            margin: 5px;
+            background-color: #728685;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 24px;
+            text-align: center;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+        }
+        #ticks-selector > label {
+            margin: 0 10px;
         }
     </style>
     <body>
-        <div id="fps"></div>
         <canvas id="game-of-life-canvas"></canvas>
         <script src="./bootstrap.js"></script>
-        <div>
-            <input
-                type="range"
-                id="n_ticks"
-                name="n_ticks"
-                min="1"
-                max="11"
-                value="1"
-                step="2"
-            />
-            <label for="volume">World updates per frame</label>
+        <div id="control-panel">
+            <button id="play-pause" class="control_button"></button>
+            <button id="random-reset" class="control_button">
+                Random reset
+            </button>
+            <button id="clear-reset" class="control_button">Clear cells</button>
+            <div id="ticks-selector">
+                <input
+                    type="range"
+                    id="n_ticks"
+                    name="n_ticks"
+                    min="1"
+                    max="11"
+                    value="1"
+                    step="2"
+                />
+                <label for="volume">World updates per frame</label>
+            </div>
         </div>
-        <button id="play-pause"></button>
-        <button id="random-reset">Random reset</button>
-        <button id="clear-reset">Clear cells</button>
+        <div id="fps"></div>
     </body>
 </html>
